@@ -10,18 +10,30 @@ package com.example.lab2_androidbasics_dados
 // --- Android Core ---
 // Bundle: Contenedor de datos que Android usa para pasar información entre componentes
 // Log: Clase para imprimir mensajes de depuración en Logcat
-import android.os.Bundle
-import android.util.Log
 
 // --- AndroidX Activity ---
 // ComponentActivity: Activity base moderna que soporta Compose y otras APIs de Jetpack
 // enableEdgeToEdge: Función para habilitar UI de borde a borde (sin barras opacas)
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 
 // --- Jetpack Compose Core ---
 // Estas son las importaciones fundamentales para construir UIs con Compose
+
+// --- Material 3 Components ---
+// Componentes de UI siguiendo Material Design 3
+
+// --- Compose Runtime (Estado y Efectos) ---
+// Estas son las APIs para manejar estado reactivo en Compose
+
+// --- Compose UI ---
+// Utilidades para modificar la apariencia y comportamiento de composables
+
+// --- Kotlin Coroutines ---
+// Corrutinas para operaciones asíncronas (como nuestra animación del dado)
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,9 +43,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-
-// --- Material 3 Components ---
-// Componentes de UI siguiendo Material Design 3
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -45,9 +54,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-
-// --- Compose Runtime (Estado y Efectos) ---
-// Estas son las APIs para manejar estado reactivo en Compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -56,9 +62,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-
-// --- Compose UI ---
-// Utilidades para modificar la apariencia y comportamiento de composables
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -67,11 +70,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// --- Kotlin Coroutines ---
-// Corrutinas para operaciones asíncronas (como nuestra animación del dado)
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
 
 // =============================================================================
 // CONSTANTES
@@ -289,6 +290,30 @@ class MainActivity : ComponentActivity() {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+
+/** representamos un dado visual */
+
+fun DiceView(
+    value: Int, // valor int del dado
+    isRolling: Boolean // definir el estado cuando esta girando
+) {
+    Box( // asignar  el tamaño y lo centramos
+        modifier = Modifier
+            .size(150.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = value.toString(),
+            fontSize = 64.sp,
+            fontWeight = FontWeight.Bold,
+            color = getDiceValueColor(value, isRolling),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun DiceRollerScreen() {
     // =========================================================================
     // ESTADO DE LA UI
@@ -332,8 +357,12 @@ fun DiceRollerScreen() {
      * mutableIntStateOf es más eficiente que mutableStateOf<Int> para
      * tipos primitivos (evita boxing/unboxing).
      */
-    var diceValue by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
+    //var diceValue by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
 
+    // creamos los 3 variables para guardar el estado
+    var dice1 by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
+    var dice2 by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
+    var dice3 by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
     /**
      * Indica si el dado está "rodando" (animándose).
      * Mientras es true, el botón está deshabilitado.
@@ -385,6 +414,9 @@ fun DiceRollerScreen() {
      * 3. Muestra el resultado final
      * 4. Reactiva el botón
      */
+
+    val total = dice1 + dice2 + dice3
+
     fun rollDice() {
         // Log para depuración - aparece en Logcat
         Log.d(TAG, "rollDice: Iniciando lanzamiento del dado")
@@ -404,9 +436,13 @@ fun DiceRollerScreen() {
                 // Generar un número aleatorio entre 1 y 20
                 // (MIN_DICE_VALUE..MAX_DICE_VALUE) crea un IntRange
                 // .random() selecciona un elemento aleatorio del rango
-                diceValue = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
+                //diceValue = (MIN_DICE_VALUE..MAX_DICE_VALUE).random() ahora usamos 3 dados
 
-                Log.d(TAG, "rollDice: Iteración ${iteration + 1}/$ANIMATION_ITERATIONS, valor temporal: $diceValue")
+                dice1 = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
+                dice2 = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
+                dice3 = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
+
+               // Log.d(TAG, "rollDice: Iteración ${iteration + 1}/$ANIMATION_ITERATIONS, valor temporal: $diceValue")
 
                 // delay() es una función de SUSPENSIÓN
                 // "Pausa" la corrutina sin bloquear el hilo
@@ -416,7 +452,7 @@ fun DiceRollerScreen() {
 
             // Paso 3: Generar el resultado final
             val finalValue = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
-            diceValue = finalValue
+            // diceValue = finalValue
 
             Log.d(TAG, "rollDice: Resultado final: $finalValue")
 
@@ -448,10 +484,17 @@ fun DiceRollerScreen() {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "RPG Dice Roller",
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                    Column {
+                        Text(
+                            text = "RPG Dice Roller",
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                        Text(
+                            text = if (isRolling) "Lanzando..." else "Total: $total",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             )
         }
@@ -485,7 +528,7 @@ fun DiceRollerScreen() {
              * Box es un layout que apila sus hijos uno encima del otro.
              * Lo usamos aquí para centrar el número del dado.
              */
-            Box(
+           /** Box(
                 modifier = Modifier
                     .size(200.dp),  // Tamaño fijo de 200x200 dp
                 contentAlignment = Alignment.Center
@@ -499,7 +542,13 @@ fun DiceRollerScreen() {
                     color = getDiceValueColor(diceValue, isRolling),
                     textAlign = TextAlign.Center
                 )
-            }
+            }*/  //aqui vamos a modificar para mostrar los 3 dados en vertical
+
+            DiceView(dice1, isRolling)
+            Spacer(modifier = Modifier.height(16.dp))
+            DiceView(dice2, isRolling)
+            Spacer(modifier = Modifier.height(16.dp))
+            DiceView(dice3, isRolling)
 
             // Espacio vertical entre elementos
             Spacer(modifier = Modifier.height(24.dp))
@@ -508,16 +557,14 @@ fun DiceRollerScreen() {
             // SECCIÓN: MENSAJE DE RESULTADO
             // -----------------------------------------------------------------
             Text(
+
                 text = resultMessage,
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = if (diceValue == MAX_DICE_VALUE || diceValue == MIN_DICE_VALUE) {
-                    FontWeight.Bold
-                } else {
-                    FontWeight.Normal
-                },
-                color = getDiceValueColor(diceValue, isRolling),
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
-            )
+
+                )
 
             Spacer(modifier = Modifier.height(48.dp))
 
