@@ -10,30 +10,23 @@ package com.example.lab2_androidbasics_dados
 // --- Android Core ---
 // Bundle: Contenedor de datos que Android usa para pasar información entre componentes
 // Log: Clase para imprimir mensajes de depuración en Logcat
+import android.os.Bundle
+import android.util.Log
+
+// --- importaciones oara que se vea bien y como lo piden ---
+
+import androidx.compose.material3.Card // estetica
+import androidx.compose.foundation.layout.Row // para que se vean los 3 en vertical
 
 // --- AndroidX Activity ---
 // ComponentActivity: Activity base moderna que soporta Compose y otras APIs de Jetpack
 // enableEdgeToEdge: Función para habilitar UI de borde a borde (sin barras opacas)
-
-// --- Jetpack Compose Core ---
-// Estas son las importaciones fundamentales para construir UIs con Compose
-
-// --- Material 3 Components ---
-// Componentes de UI siguiendo Material Design 3
-
-// --- Compose Runtime (Estado y Efectos) ---
-// Estas son las APIs para manejar estado reactivo en Compose
-
-// --- Compose UI ---
-// Utilidades para modificar la apariencia y comportamiento de composables
-
-// --- Kotlin Coroutines ---
-// Corrutinas para operaciones asíncronas (como nuestra animación del dado)
-import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+
+// --- Jetpack Compose Core ---
+// Estas son las importaciones fundamentales para construir UIs con Compose
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +36,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+
+// --- Material 3 Components ---
+// Componentes de UI siguiendo Material Design 3
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
@@ -54,6 +50,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+
+// --- Compose Runtime (Estado y Efectos) ---
+// Estas son las APIs para manejar estado reactivo en Compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -62,6 +61,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+
+// --- Compose UI ---
+// Utilidades para modificar la apariencia y comportamiento de composables
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -70,9 +72,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+// --- Kotlin Coroutines ---
+// Corrutinas para operaciones asíncronas (como nuestra animación del dado)
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
 
 // =============================================================================
 // CONSTANTES
@@ -288,29 +292,58 @@ class MainActivity : ComponentActivity() {
  * El @OptIn indica que estamos conscientes de esto y aceptamos posibles
  * cambios en futuras versiones.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+
+
 @Composable
-
-/** representamos un dado visual */
-
-fun DiceView(
-    value: Int, // valor int del dado
-    isRolling: Boolean // definir el estado cuando esta girando
+fun StatRow(
+    name: String,
+    value: Int,
+    onRoll: () -> Unit
 ) {
-    Box( // asignar  el tamaño y lo centramos
+    Card(
         modifier = Modifier
-            .size(150.dp),
-        contentAlignment = Alignment.Center
+            .fillMaxWidth()
+            .height(100.dp)
+            .padding(vertical = 8.dp)
     ) {
-        Text(
-            text = value.toString(),
-            fontSize = 64.sp,
-            fontWeight = FontWeight.Bold,
-            color = getDiceValueColor(value, isRolling),
-            textAlign = TextAlign.Center
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = name,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+
+            Text(
+                text = value.toString(),
+                fontSize = 26.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f)
+            )
+
+            Button(
+                onClick = onRoll,
+                modifier = Modifier
+                    .height(56.dp)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = "ROLL",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -357,12 +390,12 @@ fun DiceRollerScreen() {
      * mutableIntStateOf es más eficiente que mutableStateOf<Int> para
      * tipos primitivos (evita boxing/unboxing).
      */
-    //var diceValue by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
+    var vit by rememberSaveable { mutableIntStateOf(10) }
+    var dex by rememberSaveable { mutableIntStateOf(10) }
+    var wis by rememberSaveable { mutableIntStateOf(10) }
 
-    // creamos los 3 variables para guardar el estado
-    var dice1 by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
-    var dice2 by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
-    var dice3 by rememberSaveable { mutableIntStateOf(MIN_DICE_VALUE) }
+    val total = vit + dex + wis
+
     /**
      * Indica si el dado está "rodando" (animándose).
      * Mientras es true, el botón está deshabilitado.
@@ -414,9 +447,6 @@ fun DiceRollerScreen() {
      * 3. Muestra el resultado final
      * 4. Reactiva el botón
      */
-
-    val total = dice1 + dice2 + dice3
-
     fun rollDice() {
         // Log para depuración - aparece en Logcat
         Log.d(TAG, "rollDice: Iniciando lanzamiento del dado")
@@ -436,11 +466,7 @@ fun DiceRollerScreen() {
                 // Generar un número aleatorio entre 1 y 20
                 // (MIN_DICE_VALUE..MAX_DICE_VALUE) crea un IntRange
                 // .random() selecciona un elemento aleatorio del rango
-                //diceValue = (MIN_DICE_VALUE..MAX_DICE_VALUE).random() ahora usamos 3 dados
-
-                dice1 = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
-                dice2 = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
-                dice3 = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
+                //diceValue = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
 
                // Log.d(TAG, "rollDice: Iteración ${iteration + 1}/$ANIMATION_ITERATIONS, valor temporal: $diceValue")
 
@@ -452,7 +478,7 @@ fun DiceRollerScreen() {
 
             // Paso 3: Generar el resultado final
             val finalValue = (MIN_DICE_VALUE..MAX_DICE_VALUE).random()
-            // diceValue = finalValue
+            //diceValue = finalValue
 
             Log.d(TAG, "rollDice: Resultado final: $finalValue")
 
@@ -479,22 +505,26 @@ fun DiceRollerScreen() {
      *
      * Es como un "esqueleto" que organiza los elementos principales de la pantalla.
      */
+
+
+    fun rollStat(onUpdate: (Int) -> Unit) {
+        coroutineScope.launch {
+            repeat(10) {
+                onUpdate((3..18).random())
+                delay(50)
+            }
+        }
+    }
+
     Scaffold(
         // Barra superior con el título de la app
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "RPG Dice Roller",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Text(
-                            text = if (isRolling) "Lanzando..." else "Total: $total",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "RPG Dice Roller",
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 }
             )
         }
@@ -512,109 +542,95 @@ fun DiceRollerScreen() {
          * Modifier es el sistema de Compose para modificar la apariencia
          * y comportamiento de un Composable. Los modifiers se encadenan.
          */
+
+
         Column(
             modifier = Modifier
-                .fillMaxSize()                     // Ocupa todo el espacio disponible
-                .padding(paddingValues)            // Respeta el padding del Scaffold
-                .padding(horizontal = 24.dp),      // Padding adicional a los lados
-            horizontalAlignment = Alignment.CenterHorizontally,  // Centra horizontalmente
-            verticalArrangement = Arrangement.Center             // Centra verticalmente
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.weight(1f))
+            StatRow("VIT", vit) { rollStat { vit = it } }
+            Spacer(modifier = Modifier.weight(1f))
+            StatRow("DEX", dex) { rollStat { dex = it } }
+            Spacer(modifier = Modifier.weight(1f))
+            StatRow("WIS", wis) { rollStat { wis = it } }
 
-            // -----------------------------------------------------------------
-            // SECCIÓN: VALOR DEL DADO
-            // -----------------------------------------------------------------
-            /**
-             * Box es un layout que apila sus hijos uno encima del otro.
-             * Lo usamos aquí para centrar el número del dado.
-             */
-           /** Box(
-                modifier = Modifier
-                    .size(200.dp),  // Tamaño fijo de 200x200 dp
-                contentAlignment = Alignment.Center
-            ) {
-                // Texto grande mostrando el valor del dado
+            Spacer(modifier = Modifier.weight(1f))
+
                 Text(
-                    text = diceValue.toString(),
-                    fontSize = 96.sp,  // Tamaño de fuente grande
+                    text = "TOTAL: $total",
+                    fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    // Color condicional basado en el valor
-                    color = getDiceValueColor(diceValue, isRolling),
                     textAlign = TextAlign.Center
                 )
-            }*/  //aqui vamos a modificar para mostrar los 3 dados en vertical
+                Spacer(modifier = Modifier.height(12.dp))
 
-            DiceView(dice1, isRolling)
-            Spacer(modifier = Modifier.height(16.dp))
-            DiceView(dice2, isRolling)
-            Spacer(modifier = Modifier.height(16.dp))
-            DiceView(dice3, isRolling)
+                when {
+                    total < 30 -> {
+                        Text(
+                            text = "RE-ROLL RECOMMENDED!",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Red,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    total >= 50 -> {
+                        Text(
+                            text = "GODLIKE!",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFFFFD700),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
 
-            // Espacio vertical entre elementos
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // -----------------------------------------------------------------
-            // SECCIÓN: MENSAJE DE RESULTADO
-            // -----------------------------------------------------------------
-            Text(
-
-                text = resultMessage,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-
-                )
-
-            Spacer(modifier = Modifier.height(48.dp))
 
             // -----------------------------------------------------------------
-            // SECCIÓN: BOTÓN DE LANZAR
-            // -----------------------------------------------------------------
-            /**
-             * Button es el componente de botón de Material 3.
-             *
-             * Propiedades importantes:
-             * - onClick: Lambda que se ejecuta al hacer clic
-             * - enabled: Si es false, el botón está deshabilitado (gris)
-             * - colors: Personaliza los colores del botón
-             */
-            Button(
-                onClick = { rollDice() },  // Llama a nuestra función al hacer clic
-                enabled = !isRolling,      // Deshabilitado mientras rueda
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = MaterialTheme.colorScheme.outline
-                )
-            ) {
-                // Contenido del botón: ícono + texto
-                Icon(
-                    imageVector = Icons.Default.Refresh,  // Ícono de "refresh"
-                    contentDescription = "Lanzar dado",   // Accesibilidad
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = if (isRolling) "LANZANDO..." else "LANZAR D20",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                // SECCIÓN: VALOR DEL DADO
+                // -----------------------------------------------------------------
+                /**
+                 * Box es un layout que apila sus hijos uno encima del otro.
+                 * Lo usamos aquí para centrar el número del dado.
+                 */
+                Box(
+                    modifier = Modifier
+                        .size(200.dp),  // Tamaño fijo de 200x200 dp
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Texto grande mostrando el valor del dado
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                // Espacio vertical entre elementos
+                Spacer(modifier = Modifier.height(24.dp))
 
-            // Texto informativo sobre el dado
-            Text(
-                text = "Dado de 20 caras (d20)",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+                // -----------------------------------------------------------------
+                // SECCIÓN: MENSAJE DE RESULTADO
+                // -----------------------------------------------------------------
+
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                // -----------------------------------------------------------------
+                // SECCIÓN: BOTÓN DE LANZAR
+                // -----------------------------------------------------------------
+                /**
+                 * Button es el componente de botón de Material 3.
+                 *
+                 * Propiedades importantes:
+                 * - onClick: Lambda que se ejecuta al hacer clic
+                 * - enabled: Si es false, el botón está deshabilitado (gris)
+                 * - colors: Personaliza los colores del botón
+                 */
+
+                }
         }
     }
-}
+
 
 // =============================================================================
 // FUNCIÓN AUXILIAR: Obtener color según el valor del dado
