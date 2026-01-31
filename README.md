@@ -19,4 +19,4 @@ El manejo de estado se realiza con remember y rememberSaveable, lo que permite q
 
 ## Video
 
-https://youtu.be/ZxzRWtNHWDs
+https://youtu.be/TQyIpoVEffU
